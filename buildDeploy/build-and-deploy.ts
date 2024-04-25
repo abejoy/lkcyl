@@ -37,6 +37,8 @@ async function main() {
             throw new Error('STAGE environment variable is not set!');
         }
 
+        runCommand(`npm run build`, process.cwd(), {});
+
         console.log('Starting CDK deployment...');
         const runBackendStack = await askQuestion(`Do you want to run ${stage}LkcylStack? (y/n) `);
         

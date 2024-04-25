@@ -5,7 +5,7 @@
     "lkcyl": "bin/lkcyl.js"
   },
   "scripts": {
-    "build-deploy": "node build-and-deploy.js",
+    "build-deploy": "node ./buildDeploy/build-and-deploy.js",
     "deploy": "npx cdk deploy --all",
     "destroy": "npx cdk destory --all",
     "synth": "npx cdk synth",

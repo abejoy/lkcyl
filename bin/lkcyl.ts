@@ -2,9 +2,16 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { LkcylStack } from '../lib/lkcyl-stack';
+import * as path from 'path';
+import { FrontEndStack } from '../lib/front-end-stack';
+
+const replaceNonAlphaNumHyphens = (input?: string, replacement = "-") =>
+  input?.replace(/[^A-z0-9-]|_/gu, replacement) || '';
+
+const stackName = replaceNonAlphaNumHyphens(process.env.STAGE);
 
 const app = new cdk.App();
-new LkcylStack(app, 'LkcylStack', {
+const backendStack = new LkcylStack(app, `${stackName}LkcylStack`, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -19,3 +26,8 @@ new LkcylStack(app, 'LkcylStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+
+new FrontEndStack(app, `${stackName}FrontEndStack`, {
+  path: path.join(__dirname, '..', 'frontend', 'build'),
+  backendStack
+})

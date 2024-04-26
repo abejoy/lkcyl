@@ -6,6 +6,7 @@
   },
   "scripts": {
     "build-deploy": "bash build-and-deploy.sh",
+    "generate": "graphql-codegen --config codegen.yml",
     "deploy": "npx cdk deploy --all",
     "destroy": "npx cdk destory --all",
     "synth": "npx cdk synth",
@@ -15,6 +16,10 @@
     "cdk": "cdk"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.2",
+    "@graphql-codegen/typescript": "^4.0.6",
+    "@graphql-codegen/typescript-operations": "^4.2.0",
+    "@graphql-codegen/typescript-resolvers": "^4.0.6",
     "@types/jest": "^29.5.12",
     "@types/node": "20.11.19",
     "esbuild": "^0.20.2",
@@ -24,6 +29,8 @@
     "typescript": "~5.3.3"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.563.0",
+    "@aws-sdk/lib-dynamodb": "^3.563.0",
     "aws-cdk-lib": "^2.139.0",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21"

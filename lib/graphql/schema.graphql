@@ -1,0 +1,56 @@
+type Players {
+    id: String!
+    name: String!
+    verified: Boolean!
+}
+
+type Color {
+    name: String!
+    available: Boolean!
+}
+
+input ColorInput {
+    name: String!
+    available: Boolean!
+}
+
+input PlayerInput {
+    name: String!
+    verified: Boolean!
+}
+
+type Team {
+  teamId: String!
+  teamName: String!
+  managerName: String!
+  managerEmail: String!
+  captianName: String!
+  captianEmail: String!
+  teamColor: Color!
+  players: [Players]
+}
+
+type Book {
+    bookName: String!
+    pages: Int!
+}
+
+type Query {
+  getTeam(teamName: String!): Team
+  getAvailableColors: [Color!]
+  getBook(bookName: String!): Book 
+}
+
+type Mutation {
+  addTeam(
+    teamName: String!, 
+    managerName: String,
+    managerEmail: String!,
+    captianName: String!,
+    captianEmail: String!,
+    teamColor: ColorInput!
+    players: [PlayerInput]
+  ): Team
+
+  addBook(bookName: String!, pages:Int!): Book
+}

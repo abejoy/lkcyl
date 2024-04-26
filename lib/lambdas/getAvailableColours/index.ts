@@ -1,4 +1,4 @@
-import { AllColours, HttpResponse, getHttpResponse } from "../getAllTeams";
+import { AllColours, HttpResponse } from "../getAllTeams";
 
 
 type ColorResponse = {
@@ -8,12 +8,12 @@ type ColorResponse = {
 
 
 
-export const handler = async (event: any): Promise<HttpResponse> => {
+export const handler = async (event: any): Promise<HttpResponse|null> => {
     const data = JSON.parse(event?.body);
     const allAvailableColours = Object.values(AllColours) as string[];
     const toret = allAvailableColours.map(colorName => ({
       colorName,
       available: true
     }));
-    return getHttpResponse<Array<ColorResponse>>(toret)
+    return null;
 }

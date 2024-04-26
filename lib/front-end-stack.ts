@@ -1,22 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { aws_lambda as lambda } from 'aws-cdk-lib';
-import { aws_apigateway as apigateway } from 'aws-cdk-lib';
 import { aws_s3 as s3 } from 'aws-cdk-lib';
-import { aws_cloudfront as cloudfront } from 'aws-cdk-lib';
-import { aws_s3_deployment as s3deploy } from 'aws-cdk-lib';
-import { aws_iam as iam } from 'aws-cdk-lib';
-import path = require('path');
-import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { CachePolicy, Distribution, OriginAccessIdentity, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
+import { CachePolicy, Distribution, OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { CacheControl } from 'aws-cdk-lib/aws-codepipeline-actions';
 import { BucketAccessControl } from 'aws-cdk-lib/aws-s3';
-import { HttpMethod } from 'aws-cdk-lib/aws-events';
-import { exec, execSync } from 'child_process';
-import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { exec } from 'child_process';
 import { LkcylStack } from './lkcyl-stack';
+import path from "path";
 
 interface LkcylStackProps extends cdk.StackProps {
     path: string

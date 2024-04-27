@@ -4,8 +4,11 @@ import {
   PutCommand,
   GetCommand,
   ScanCommand,
+  PutCommandInput,
+  GetCommandInput,
+  ScanCommandInput,
 } from "@aws-sdk/lib-dynamodb";
-import { Color, Team, Players, Book } from "../helpers/types/graphql-types";
+import { Team, AvailableColor, Color, Player } from "../helpers/types/graphql-types";
 
 export enum AllColours {
   Red = 'Red',
@@ -21,9 +24,17 @@ export type HttpResponse = {
   body: string
 }
 
+interface ColorCounts {
+  [key: string]: number;
+}
 
-const tableName = process.env.TABLE_NAME;
-const bookTableName = process.env.BOOK_TABLE_NAME;
+interface TeamMutationInput extends Team {
+  playerNames: string[];
+}
+
+
+const TableName = process.env.TABLE_NAME || '';
+
 const client = new DynamoDBClient();
 const dynamo = DynamoDBDocumentClient.from(client);
 
@@ -32,57 +43,45 @@ export const handler = async (event: any) => {
   switch (event.info.fieldName) {
     case 'getTeam':
       return await getTeam(event.arguments.teamName);
+    case 'getAllTeam':
+      return await getAllTeam();
     case 'addTeam':
       return await addTeam(event.arguments);
-    case 'getTeamColors':
+    case 'getAvailableColors':
       return getTeamColors();
-    case 'addBook':
-      return addBook(event.arguments);
-    case 'getBook':
-      return getBook(event.arguments.bookName);
     default:
       throw new Error("Handler not found");
     break;
   }
-};  
-
-
-
-const getBook = async (bookName: string) => {
-  const params = {
-    TableName: 'AbeLkcylStackBookTable',
-    Key: { bookName }
-  };
-  try {
-    const bookDbRet = await dynamo.send(new GetCommand(params));
-    if (bookDbRet.Item){
-      return bookDbRet.Item
-    }
-    return null;
-  } catch (err) {
-    console.error(`Error getting book from  bookName ${bookName}`, err);
-    throw new Error(`Failed to fetch book ${bookName} from ${bookTableName} because: ${err}`);
-  }
 };
 
-const addBook = async(args: Book): Promise<Book> => {
-  const params = {
-    TableName: bookTableName,
-    Item: args,
+const getAllTeam = async (): Promise<Team[]> => {
+  const scanParams: ScanCommandInput = {
+    TableName,
   };
+  const teamsScanned: Team[] = [];
+  let items;
   try {
-    await dynamo.send( new PutCommand(params));
-    return args
+    do {
+      items = await dynamo.send(new ScanCommand(scanParams));
+      items.Items?.forEach((item) => {
+        if(item.teamName){
+          teamsScanned.push(item as Team);
+        }
+      });
+      scanParams.ExclusiveStartKey = items.LastEvaluatedKey
+    } while (items.LastEvaluatedKey);
   } catch (err) {
-    console.error(`Error adding book ${args.bookName}`, err);
-    throw new Error(`Failed to add book ${args.bookName} from ${JSON.stringify(args)} because: ${err}`);
+    throw new Error('Failed to fetch All team from DynamoDB');
   }
+  return teamsScanned;
+
 }
 
 
 const getTeam = async (teamName: string) => {
-  const params = {
-    TableName: tableName,
+  const params: GetCommandInput = {
+    TableName,
     Key: { teamName }
   };
   try {
@@ -98,46 +97,80 @@ const getTeam = async (teamName: string) => {
 }
 
 
-const addTeam = async (args: any) => {
-  console.log('potato', args);
-  const params = {
-    TableName: tableName,
-    Item: args,
-  };
-  const sampleTeam:Team = {
-    teamId:'a', 
-    teamName: 'b',   
-    captianEmail: 'a',
-    captianName: 'a',
-    managerEmail: 'a',
-    managerName: "a",
-    players: [{id: '1', name: 'potato', verified: false}],
-    teamColor: {name:"red", available:false}
+const addTeam = async (args: TeamMutationInput) => {
+  const {teamName, teamColor, managerEmail, managerName, captianName, captianEmail} = args;
+  const isTeamNameTaken: boolean = await checkIfEntryExists(teamName);
+  if (isTeamNameTaken) throw new Error(`Team Name: ${teamName} already exists`);
+
+  const players: Player[] = args.playerNames.map(playerName => ({
+    name: playerName,
+    verified: false,
+  }));
+
+  const playerToAdd: Team = {
+    teamName,
+    managerName,
+    managerEmail,
+    captianName,
+    captianEmail,
+    teamColor,
+    players,
   }
-  return sampleTeam;
+  const params: PutCommandInput = {
+    TableName,
+    Item: playerToAdd,
+  };
+  try {
+    await dynamo.send(new PutCommand(params));
+    return playerToAdd
+  } catch (err) {
+    throw new Error(`Failed to addteam ${JSON.stringify(err)}`);
+  }
 }
 
-const getTeamColors = async(): Promise<Array<Color>> => {
-  const scanParams = {
-    TableName: tableName,
+const checkIfEntryExists = async (teamName: string): Promise<boolean> => {
+  const params: GetCommandInput = {
+      TableName,
+      Key: {teamName},
+      ProjectionExpression: "teamName"  // Specify a small attribute or one that exists in all records
+  };
+  try {
+      const data = await dynamo.send(new GetCommand(params));
+      if (data.Item) {
+          return true;
+      } else {
+          return false;
+      }
+  } catch (err) {
+    throw new Error(`Failed to check if entry exists ${JSON.stringify(err)}`);
+  }
+}
+
+//todo
+const getTeamColors = async(): Promise<Array<AvailableColor>> => {
+  const colorCounts: ColorCounts = {};
+  const scanParams: ScanCommandInput = {
+    TableName,
     ProjectionExpression: "teamColor"
   };
-
-  const scanResults: Set<Color> = new Set();
-  let items;
-  try{
+  try {
+    let scanResults;
     do {
-      items = await dynamo.send(new ScanCommand(scanParams));
-      items.Items?.forEach((item) => {
-        if (item.teamColor && item.teamColor.name) {
-          scanResults.add(item.teamColor as Color);
+      scanResults = await dynamo.send(new ScanCommand(scanParams));
+      scanResults.Items?.forEach(item => {
+        if(item.teamColor) {
+          colorCounts[item.teamColor] = (colorCounts[item.teamColor] || 0) + 1
         }
       });
-    } while (items.LastEvaluatedKey);
-  } catch (err) {
-    console.error("Error performing scan on DynamoDB", err);
-    throw new Error('Failed to fetch team colors from DynamoDB');
-  }
-  return Array.from(scanResults);
+      scanParams.ExclusiveStartKey = scanResults.LastEvaluatedKey;
+    } while (scanResults.LastEvaluatedKey)
+    const availableColors: AvailableColor[] = Object.values(Color).map(color => ({
+      colorName: color,
+      available: (colorCounts[color] || 0) < 2
+    }));
+    return availableColors;
 
+  } catch (err) {
+    throw new Error('Failed to fetch All team colors from DynamoDB');
+  }
 }

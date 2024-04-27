@@ -16,33 +16,23 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
-export type Book = {
-  __typename?: 'Book';
-  bookName: Scalars['String']['output'];
-  pages: Scalars['Int']['output'];
-};
-
-export type Color = {
-  __typename?: 'Color';
+export type AvailableColor = {
+  __typename?: 'AvailableColor';
   available: Scalars['Boolean']['output'];
-  name: Scalars['String']['output'];
+  colorName: Color;
 };
 
-export type ColorInput = {
-  available: Scalars['Boolean']['input'];
-  name: Scalars['String']['input'];
-};
+export enum Color {
+  Black = 'Black',
+  Blue = 'Blue',
+  Green = 'Green',
+  Red = 'Red',
+  White = 'White'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addBook?: Maybe<Book>;
   addTeam?: Maybe<Team>;
-};
-
-
-export type MutationAddBookArgs = {
-  bookName: Scalars['String']['input'];
-  pages: Scalars['Int']['input'];
 };
 
 
@@ -51,33 +41,22 @@ export type MutationAddTeamArgs = {
   captianName: Scalars['String']['input'];
   managerEmail: Scalars['String']['input'];
   managerName?: InputMaybe<Scalars['String']['input']>;
-  players?: InputMaybe<Array<InputMaybe<PlayerInput>>>;
-  teamColor: ColorInput;
+  playerNames: Array<InputMaybe<Scalars['String']['input']>>;
+  teamColor: Color;
   teamName: Scalars['String']['input'];
 };
 
-export type PlayerInput = {
-  name: Scalars['String']['input'];
-  verified: Scalars['Boolean']['input'];
-};
-
-export type Players = {
-  __typename?: 'Players';
-  id: Scalars['String']['output'];
+export type Player = {
+  __typename?: 'Player';
   name: Scalars['String']['output'];
   verified: Scalars['Boolean']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
-  getAvailableColors?: Maybe<Array<Color>>;
-  getBook?: Maybe<Book>;
+  getAllTeam: Array<Maybe<Team>>;
+  getAvailableColors: Array<Maybe<AvailableColor>>;
   getTeam?: Maybe<Team>;
-};
-
-
-export type QueryGetBookArgs = {
-  bookName: Scalars['String']['input'];
 };
 
 
@@ -91,9 +70,8 @@ export type Team = {
   captianName: Scalars['String']['output'];
   managerEmail: Scalars['String']['output'];
   managerName: Scalars['String']['output'];
-  players?: Maybe<Array<Maybe<Players>>>;
+  players?: Maybe<Array<Maybe<Player>>>;
   teamColor: Color;
-  teamId: Scalars['String']['output'];
   teamName: Scalars['String']['output'];
 };
 
@@ -168,14 +146,11 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  Book: ResolverTypeWrapper<Book>;
+  AvailableColor: ResolverTypeWrapper<AvailableColor>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
-  Color: ResolverTypeWrapper<Color>;
-  ColorInput: ColorInput;
-  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  Color: Color;
   Mutation: ResolverTypeWrapper<{}>;
-  PlayerInput: PlayerInput;
-  Players: ResolverTypeWrapper<Players>;
+  Player: ResolverTypeWrapper<Player>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Team: ResolverTypeWrapper<Team>;
@@ -183,46 +158,34 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  Book: Book;
+  AvailableColor: AvailableColor;
   Boolean: Scalars['Boolean']['output'];
-  Color: Color;
-  ColorInput: ColorInput;
-  Int: Scalars['Int']['output'];
   Mutation: {};
-  PlayerInput: PlayerInput;
-  Players: Players;
+  Player: Player;
   Query: {};
   String: Scalars['String']['output'];
   Team: Team;
 };
 
-export type BookResolvers<ContextType = any, ParentType extends ResolversParentTypes['Book'] = ResolversParentTypes['Book']> = {
-  bookName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  pages?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type ColorResolvers<ContextType = any, ParentType extends ResolversParentTypes['Color'] = ResolversParentTypes['Color']> = {
+export type AvailableColorResolvers<ContextType = any, ParentType extends ResolversParentTypes['AvailableColor'] = ResolversParentTypes['AvailableColor']> = {
   available?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  colorName?: Resolver<ResolversTypes['Color'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  addBook?: Resolver<Maybe<ResolversTypes['Book']>, ParentType, ContextType, RequireFields<MutationAddBookArgs, 'bookName' | 'pages'>>;
-  addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captianEmail' | 'captianName' | 'managerEmail' | 'teamColor' | 'teamName'>>;
+  addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captianEmail' | 'captianName' | 'managerEmail' | 'playerNames' | 'teamColor' | 'teamName'>>;
 };
 
-export type PlayersResolvers<ContextType = any, ParentType extends ResolversParentTypes['Players'] = ResolversParentTypes['Players']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+export type PlayerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']> = {
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  getAvailableColors?: Resolver<Maybe<Array<ResolversTypes['Color']>>, ParentType, ContextType>;
-  getBook?: Resolver<Maybe<ResolversTypes['Book']>, ParentType, ContextType, RequireFields<QueryGetBookArgs, 'bookName'>>;
+  getAllTeam?: Resolver<Array<Maybe<ResolversTypes['Team']>>, ParentType, ContextType>;
+  getAvailableColors?: Resolver<Array<Maybe<ResolversTypes['AvailableColor']>>, ParentType, ContextType>;
   getTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryGetTeamArgs, 'teamName'>>;
 };
 
@@ -231,18 +194,16 @@ export type TeamResolvers<ContextType = any, ParentType extends ResolversParentT
   captianName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   managerEmail?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   managerName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  players?: Resolver<Maybe<Array<Maybe<ResolversTypes['Players']>>>, ParentType, ContextType>;
+  players?: Resolver<Maybe<Array<Maybe<ResolversTypes['Player']>>>, ParentType, ContextType>;
   teamColor?: Resolver<ResolversTypes['Color'], ParentType, ContextType>;
-  teamId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   teamName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
-  Book?: BookResolvers<ContextType>;
-  Color?: ColorResolvers<ContextType>;
+  AvailableColor?: AvailableColorResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
-  Players?: PlayersResolvers<ContextType>;
+  Player?: PlayerResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Team?: TeamResolvers<ContextType>;
 };

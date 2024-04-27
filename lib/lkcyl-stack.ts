@@ -1,11 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { aws_apigateway as apigateway } from 'aws-cdk-lib';
 import { aws_iam as iam } from 'aws-cdk-lib';
-import { HttpMethod } from 'aws-cdk-lib/aws-events';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import path, { join } from "path";
+import { join } from "path";
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { AuthorizationType, GraphqlApi, SchemaFile } from 'aws-cdk-lib/aws-appsync';
 
@@ -42,21 +40,10 @@ export class LkcylStack extends cdk.Stack {
 
     const tableName = `${id}TeamTable`;
     const teamTable = new Table(this, tableName, {
-      partitionKey: {name: 'teamId', type: AttributeType.STRING},
-      sortKey: {name: 'teamName', type: AttributeType.STRING},
+      partitionKey: {name: 'teamName', type: AttributeType.STRING},
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       tableName,
     });
-
-
-    const bookTableName = `${id}BookTable`;
-    const bookTable = new Table(this, bookTableName, {
-      partitionKey: {name: 'bookName', type: AttributeType.STRING},
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      tableName: bookTableName,
-    });
-
-
 
     //roles
     const roleForLambda = new iam.Role(this, `${id}OpenAILambdaRole`, {
@@ -97,12 +84,10 @@ export class LkcylStack extends cdk.Stack {
       entry: join(__dirname, 'lambdas/getAllTeams/index.ts'),
       environment: {
         TABLE_NAME: teamTable.tableName,
-        BOOK_TABLE_NAME: bookTable.tableName,
       },
       role: roleForLambda
     });
-    bookTable.grantFullAccess(teamLambdaFunction);
-    // teamTable.grantReadWriteData(teamLambdaFunction);
+    teamTable.grantFullAccess(teamLambdaFunction);
 
     // const getAvailableColoursFunction = new NodejsFunction(this, `${id}GetAvailableColoursLambda`, {
     //   runtime: Runtime.NODEJS_18_X,
@@ -127,6 +112,11 @@ export class LkcylStack extends cdk.Stack {
     const lambdaDs = api.addLambdaDataSource(`${id}LambdaDataSource`, teamLambdaFunction);
 
     //Define resolvers
+    lambdaDs.createResolver(`${id}GetAllTeam`, {
+      typeName: 'Query',
+      fieldName: 'getAllTeam'
+    });
+
     lambdaDs.createResolver(`${id}GetTeam`, {
       typeName: 'Query',
       fieldName: 'getTeam'
@@ -142,15 +132,6 @@ export class LkcylStack extends cdk.Stack {
       fieldName: 'getAvailableColors'
     });
 
-    lambdaDs.createResolver(`${id}GetBook`, {
-      typeName: 'Query',
-      fieldName: 'getBook'
-    });
-
-    lambdaDs.createResolver(`${id}AddBook`, {
-      typeName: 'Mutation',
-      fieldName: 'addBook'
-    });
 
 
 

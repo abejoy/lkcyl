@@ -132,6 +132,11 @@ export class LkcylStack extends cdk.Stack {
       fieldName: 'getAvailableColors'
     });
 
+    lambdaDs.createResolver(`${id}GetTableData`, {
+      typeName: 'Query',
+      fieldName: 'getTableData'
+    });
+
 
 
 

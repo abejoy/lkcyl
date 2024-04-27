@@ -49,11 +49,45 @@ export const handler = async (event: any) => {
       return await addTeam(event.arguments);
     case 'getAvailableColors':
       return getTeamColors();
+    case 'getTableData':
+      return getTableData();
     default:
       throw new Error("Handler not found");
     break;
   }
 };
+
+
+
+const getTableData = async (): Promise<Array<Array<string>>> => {
+  const tableData: Array<Array<string>> = [];
+  const scanParams: ScanCommandInput = {
+    TableName,
+    ProjectionExpression: 'teamName, kcylUnit, teamColor, players'
+  }
+  let data;
+  try {
+    do {
+      data = await dynamo.send(new ScanCommand(scanParams));
+      data.Items?.forEach(item => {
+        if(item.teamName){
+          const {teamName, kcylUnit, teamColor, players} = item
+          const rowTable: Array<string> = [teamName, kcylUnit, teamColor, areAllPlayersVerified(players)];
+          tableData.push(rowTable)
+        }
+      });
+      scanParams.ExclusiveStartKey = data.LastEvaluatedKey
+    } while(data.LastEvaluatedKey);
+  } catch (err) {
+    throw new Error(`Failed to fetch Table data  DynamoDB ${JSON.stringify(err)}`);
+  }
+  return tableData;
+}
+
+const areAllPlayersVerified = (players: Player[]): string => {
+  //todo
+  return 'False';
+}
 
 const getAllTeam = async (): Promise<Team[]> => {
   const scanParams: ScanCommandInput = {
@@ -98,7 +132,7 @@ const getTeam = async (teamName: string) => {
 
 
 const addTeam = async (args: TeamMutationInput) => {
-  const {teamName, teamColor, managerEmail, managerName, captianName, captianEmail} = args;
+  const {teamName, teamColor, managerEmail, managerName, captianName, captianEmail, kcylUnit, gender, additionalMessage} = args;
   const isTeamNameTaken: boolean = await checkIfEntryExists(teamName);
   if (isTeamNameTaken) throw new Error(`Team Name: ${teamName} already exists`);
 
@@ -115,6 +149,9 @@ const addTeam = async (args: TeamMutationInput) => {
     captianEmail,
     teamColor,
     players,
+    kcylUnit,
+    gender,
+    additionalMessage
   }
   const params: PutCommandInput = {
     TableName,

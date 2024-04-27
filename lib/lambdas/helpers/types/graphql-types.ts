@@ -30,6 +30,11 @@ export enum Color {
   White = 'White'
 }
 
+export enum Gender {
+  Female = 'Female',
+  Male = 'Male'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
   addTeam?: Maybe<Team>;
@@ -37,8 +42,11 @@ export type Mutation = {
 
 
 export type MutationAddTeamArgs = {
+  additionalMessage?: InputMaybe<Scalars['String']['input']>;
   captianEmail: Scalars['String']['input'];
   captianName: Scalars['String']['input'];
+  gender: Gender;
+  kcylUnit: Scalars['String']['input'];
   managerEmail: Scalars['String']['input'];
   managerName?: InputMaybe<Scalars['String']['input']>;
   playerNames: Array<InputMaybe<Scalars['String']['input']>>;
@@ -56,6 +64,7 @@ export type Query = {
   __typename?: 'Query';
   getAllTeam: Array<Maybe<Team>>;
   getAvailableColors: Array<Maybe<AvailableColor>>;
+  getTableData: Array<Maybe<Array<Maybe<Scalars['String']['output']>>>>;
   getTeam?: Maybe<Team>;
 };
 
@@ -66,8 +75,11 @@ export type QueryGetTeamArgs = {
 
 export type Team = {
   __typename?: 'Team';
+  additionalMessage?: Maybe<Scalars['String']['output']>;
   captianEmail: Scalars['String']['output'];
   captianName: Scalars['String']['output'];
+  gender: Gender;
+  kcylUnit: Scalars['String']['output'];
   managerEmail: Scalars['String']['output'];
   managerName: Scalars['String']['output'];
   players?: Maybe<Array<Maybe<Player>>>;
@@ -149,6 +161,7 @@ export type ResolversTypes = {
   AvailableColor: ResolverTypeWrapper<AvailableColor>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Color: Color;
+  Gender: Gender;
   Mutation: ResolverTypeWrapper<{}>;
   Player: ResolverTypeWrapper<Player>;
   Query: ResolverTypeWrapper<{}>;
@@ -174,7 +187,7 @@ export type AvailableColorResolvers<ContextType = any, ParentType extends Resolv
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captianEmail' | 'captianName' | 'managerEmail' | 'playerNames' | 'teamColor' | 'teamName'>>;
+  addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captianEmail' | 'captianName' | 'gender' | 'kcylUnit' | 'managerEmail' | 'playerNames' | 'teamColor' | 'teamName'>>;
 };
 
 export type PlayerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']> = {
@@ -186,12 +199,16 @@ export type PlayerResolvers<ContextType = any, ParentType extends ResolversParen
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getAllTeam?: Resolver<Array<Maybe<ResolversTypes['Team']>>, ParentType, ContextType>;
   getAvailableColors?: Resolver<Array<Maybe<ResolversTypes['AvailableColor']>>, ParentType, ContextType>;
+  getTableData?: Resolver<Array<Maybe<Array<Maybe<ResolversTypes['String']>>>>, ParentType, ContextType>;
   getTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryGetTeamArgs, 'teamName'>>;
 };
 
 export type TeamResolvers<ContextType = any, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
+  additionalMessage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   captianEmail?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   captianName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  gender?: Resolver<ResolversTypes['Gender'], ParentType, ContextType>;
+  kcylUnit?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   managerEmail?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   managerName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   players?: Resolver<Maybe<Array<Maybe<ResolversTypes['Player']>>>, ParentType, ContextType>;

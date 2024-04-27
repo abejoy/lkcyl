@@ -11,6 +11,11 @@ enum Color {
     Black
 }
 
+enum Gender {
+    Male,
+    Female
+}
+
 type AvailableColor {
     colorName: Color!
     available: Boolean!
@@ -23,6 +28,9 @@ type Team {
   captianName: String!
   captianEmail: String!
   teamColor: Color!
+  kcylUnit: String!
+  gender: Gender!
+  additionalMessage: String
   players: [Player]
 }
 
@@ -30,6 +38,7 @@ type Query {
   getTeam(teamName: String!): Team
   getAvailableColors: [AvailableColor]!
   getAllTeam: [Team]!
+  getTableData: [[String]]!
 }
 
 type Mutation {
@@ -40,6 +49,9 @@ type Mutation {
     captianName: String!,
     captianEmail: String!,
     teamColor: Color!,
+    gender: Gender!,
+    kcylUnit: String!
+    additionalMessage: String
     playerNames: [String]!
   ): Team
 

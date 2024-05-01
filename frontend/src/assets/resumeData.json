@@ -11,14 +11,14 @@
     "email": "abrahamjoys98@gmail.com",
     "contacts": [
       {
-        "name": "Abraham Joys (aka Jesvin)",
+        "name": "Kester Tomy (aka Luka)",
         "role": "LKCYL President",
-        "number": "+44 7551199833"
+        "number": "+44 7366241186"
       },
       {
-        "name": "Albert Mathew",
+        "name": "Iva Thomas",
         "role": "LKCYL Secretary",
-        "number": "+44 7926982040"
+        "number": "+44 7450386401"
       },
       {
         "name": "Shaji Philip Madathiparambil",
@@ -109,15 +109,15 @@
   "testimonials":{
     "testimonials":[
       {
-        "text":"LKCYL Elections during LKCA Summer Programe",
-        "user":"Saturday 24th June"
-      },
-      {
         "text":"Football Tournament",
-        "user":"Saturday 1st July"
+        "user":"Saturday 13th July"
       },
       {
-        "text":"3 dayCamp",
+        "text":"LKCYL Paintballing",
+        "user":"Coming Soon"
+      },
+      {
+        "text":"3 Day South Camp",
         "user":"Coming Soon"
       }
     ]

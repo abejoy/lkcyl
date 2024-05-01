@@ -19,7 +19,9 @@ export class FrontEndStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: LkcylStackProps) {
         super(scope, id, props);
 
-        const websiteBucket = new s3.Bucket(this, `${id}LkcylWebsiteStack`, {
+        const bucketName = `${id}LkcylWebsiteBucket`
+        const websiteBucket = new s3.Bucket(this, bucketName, {
+            bucketName: bucketName.toLowerCase(),
             accessControl: BucketAccessControl.PRIVATE,
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });

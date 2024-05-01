@@ -1,4 +1,5 @@
 import { DynamoDB, DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { InvokeCommand, InvokeCommandInput, LambdaClient } from "@aws-sdk/client-lambda";
 import {
   DynamoDBDocumentClient,
   PutCommand,
@@ -8,7 +9,9 @@ import {
   GetCommandInput,
   ScanCommandInput,
 } from "@aws-sdk/lib-dynamodb";
+
 import { Team, AvailableColor, Color, Player } from "../helpers/types/graphql-types";
+import { EmailTemplate, EmailToSend } from "../emailService";
 
 export enum AllColours {
   Red = 'Red',
@@ -35,8 +38,11 @@ interface TeamMutationInput extends Team {
 
 const TableName = process.env.TABLE_NAME || '';
 
-const client = new DynamoDBClient();
-const dynamo = DynamoDBDocumentClient.from(client);
+const dynamoClient = new DynamoDBClient();
+const dynamo = DynamoDBDocumentClient.from(dynamoClient);
+
+const lambdaClinet = new LambdaClient();
+
 
 
 export const handler = async (event: any) => {
@@ -51,6 +57,8 @@ export const handler = async (event: any) => {
       return getTeamColors();
     case 'getTableData':
       return getTableData();
+    case 'sendEmailsToCaptianManagers':
+      return sendCustomEmail(event.arguments.subject, event.arguments.body);
     default:
       throw new Error("Handler not found");
     break;
@@ -129,10 +137,20 @@ const getTeam = async (teamName: string) => {
     throw new Error('Failed to fetch team from DynamoDB');
   }
 }
+const sendEmail = async (emailsToSend: EmailToSend[]) => {
+  const emailLambdaParams: InvokeCommandInput = {
+    FunctionName: process.env.EMAIL_LAMBDA_NAME,
+    Payload: Buffer.from(JSON.stringify({emailsToSend})),
+  }
+  lambdaClinet.send(new InvokeCommand(emailLambdaParams));
+  //for logging
+  // const response = await lambdaClinet.send(new InvokeCommand(emailLambdaParams));
+  // return new TextDecoder("utf-8").decode(response.Payload);
+}
 
 
 const addTeam = async (args: TeamMutationInput) => {
-  const {teamName, teamColor, managerEmail, managerName, captianName, captianEmail, kcylUnit, gender, additionalMessage} = args;
+  const {teamName, teamColor, managerEmail, managerName, captianName, captianEmail, kcylUnit, gender, additionalMessage, captainPhone, managerPhone} = args;
   const isTeamNameTaken: boolean = await checkIfEntryExists(teamName);
   if (isTeamNameTaken) throw new Error(`Team Name: ${teamName} already exists`);
 
@@ -151,18 +169,35 @@ const addTeam = async (args: TeamMutationInput) => {
     players,
     kcylUnit,
     gender,
-    additionalMessage
+    additionalMessage,
+    captainPhone,
+    managerPhone
   }
-  const params: PutCommandInput = {
+  const dynamoParams: PutCommandInput = {
     TableName,
     Item: playerToAdd,
   };
+
+
   try {
-    await dynamo.send(new PutCommand(params));
-    return playerToAdd
+    await dynamo.send(new PutCommand(dynamoParams));
+
+    const emailsToSendCaptian: EmailToSend = {emailAddressToSend: [playerToAdd.captianEmail], emailTemplate: EmailTemplate.Captian, emailArgs: playerToAdd};
+
+    const emailsToSendManager: EmailToSend = {emailAddressToSend: [playerToAdd.managerEmail], emailTemplate: EmailTemplate.Manager, emailArgs: playerToAdd};
+
+    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'jesvinjoril98@yahoo.co.in'], emailTemplate: EmailTemplate.Admin, emailArgs: playerToAdd};
+
+    const emailsToSend: EmailToSend[] = [emailsToSendCaptian, emailsToSendManager, emailToAdmin]
+    sendEmail(emailsToSend);
+    return playerToAdd;
   } catch (err) {
     throw new Error(`Failed to addteam ${JSON.stringify(err)}`);
   }
+}
+
+const sendCustomEmail = (subject:string, body:string): string => {
+  return 'todo';
 }
 
 const checkIfEntryExists = async (teamName: string): Promise<boolean> => {

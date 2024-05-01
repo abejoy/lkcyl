@@ -10,7 +10,7 @@ import {
   ScanCommandInput,
 } from "@aws-sdk/lib-dynamodb";
 
-import { Team, AvailableColor, Color, Player } from "../helpers/types/graphql-types";
+import { Team, AvailableColor, Color, Player, PlayerInput } from "../helpers/types/graphql-types";
 import { EmailTemplate, EmailToSend } from "../emailService";
 
 export enum AllColours {
@@ -59,11 +59,29 @@ export const handler = async (event: any) => {
       return getTableData();
     case 'sendEmailsToCaptianManagers':
       return sendCustomEmail(event.arguments.subject, event.arguments.body);
+    case 'updateTeamPlayers':
+      return updateTeamPlayers(event.arguments.teamName, event.arguments.players);
     default:
       throw new Error("Handler not found");
     break;
   }
 };
+
+const updateTeamPlayers = async (teamName:string, players:PlayerInput[]): Promise<Team> => {
+  
+  try {
+    const team = await getTeam(teamName);
+    if(!team) {
+      throw new Error(`Team not Found`);
+    }
+    team.players = players
+    await updateTeam(team);
+    return team as Team;
+  } catch(err) {
+    throw new Error(`Failed to update team Players ${JSON.stringify(err)}`);
+  }
+
+}
 
 
 
@@ -93,8 +111,7 @@ const getTableData = async (): Promise<Array<Array<string>>> => {
 }
 
 const areAllPlayersVerified = (players: Player[]): string => {
-  //todo
-  return 'False';
+  return String(players.every(player => (player.verified))).toUpperCase();
 }
 
 const getAllTeam = async (): Promise<Team[]> => {
@@ -121,7 +138,7 @@ const getAllTeam = async (): Promise<Team[]> => {
 }
 
 
-const getTeam = async (teamName: string) => {
+const getTeam = async (teamName: string): Promise<Team| null> => {
   const params: GetCommandInput = {
     TableName,
     Key: { teamName }
@@ -129,7 +146,7 @@ const getTeam = async (teamName: string) => {
   try {
     const teamDynamoReturn = await dynamo.send(new GetCommand(params))
     if(teamDynamoReturn.Item) {
-      return teamDynamoReturn.Item;
+      return teamDynamoReturn.Item as Team;
     }
     return null;
   } catch (err) {
@@ -148,6 +165,14 @@ const sendEmail = async (emailsToSend: EmailToSend[]) => {
   // return new TextDecoder("utf-8").decode(response.Payload);
 }
 
+const updateTeam = async (team:Team) => {
+  const dynamoParams: PutCommandInput = {
+    TableName,
+    Item: team,
+  };
+  return dynamo.send(new PutCommand(dynamoParams));
+}
+
 
 const addTeam = async (args: TeamMutationInput) => {
   const {teamName, teamColor, managerEmail, managerName, captianName, captianEmail, kcylUnit, gender, additionalMessage, captainPhone, managerPhone} = args;
@@ -159,7 +184,7 @@ const addTeam = async (args: TeamMutationInput) => {
     verified: false,
   }));
 
-  const playerToAdd: Team = {
+  const teamToAdd: Team = {
     teamName,
     managerName,
     managerEmail,
@@ -173,24 +198,21 @@ const addTeam = async (args: TeamMutationInput) => {
     captainPhone,
     managerPhone
   }
-  const dynamoParams: PutCommandInput = {
-    TableName,
-    Item: playerToAdd,
-  };
 
 
   try {
-    await dynamo.send(new PutCommand(dynamoParams));
 
-    const emailsToSendCaptian: EmailToSend = {emailAddressToSend: [playerToAdd.captianEmail], emailTemplate: EmailTemplate.Captian, emailArgs: playerToAdd};
+    await updateTeam(teamToAdd);
 
-    const emailsToSendManager: EmailToSend = {emailAddressToSend: [playerToAdd.managerEmail], emailTemplate: EmailTemplate.Manager, emailArgs: playerToAdd};
+    const emailsToSendCaptian: EmailToSend = {emailAddressToSend: [teamToAdd.captianEmail], emailTemplate: EmailTemplate.Captian, emailArgs: teamToAdd};
 
-    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'jesvinjoril98@yahoo.co.in'], emailTemplate: EmailTemplate.Admin, emailArgs: playerToAdd};
+    const emailsToSendManager: EmailToSend = {emailAddressToSend: [teamToAdd.managerEmail], emailTemplate: EmailTemplate.Manager, emailArgs: teamToAdd};
+
+    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'jesvinjoril98@yahoo.co.in'], emailTemplate: EmailTemplate.Admin, emailArgs: teamToAdd};
 
     const emailsToSend: EmailToSend[] = [emailsToSendCaptian, emailsToSendManager, emailToAdmin]
     sendEmail(emailsToSend);
-    return playerToAdd;
+    return teamToAdd;
   } catch (err) {
     throw new Error(`Failed to addteam ${JSON.stringify(err)}`);
   }

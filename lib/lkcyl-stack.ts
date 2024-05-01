@@ -183,6 +183,11 @@ export class LkcylStack extends cdk.Stack {
       fieldName: 'addTeam'
     });
 
+    lambdaDs.createResolver(`${id}UpdateTeamPlayers`, {
+      typeName: 'Mutation',
+      fieldName: 'updateTeamPlayers'
+    });
+
     lambdaDs.createResolver(`${id}GetAvailableColors`, {
       typeName: 'Query',
       fieldName: 'getAvailableColors'

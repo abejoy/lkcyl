@@ -38,6 +38,7 @@ export enum Gender {
 export type Mutation = {
   __typename?: 'Mutation';
   addTeam?: Maybe<Team>;
+  updateTeamPlayers?: Maybe<Team>;
 };
 
 
@@ -56,10 +57,21 @@ export type MutationAddTeamArgs = {
   teamName: Scalars['String']['input'];
 };
 
+
+export type MutationUpdateTeamPlayersArgs = {
+  players: Array<InputMaybe<PlayerInput>>;
+  teamName: Scalars['String']['input'];
+};
+
 export type Player = {
   __typename?: 'Player';
   name: Scalars['String']['output'];
   verified: Scalars['Boolean']['output'];
+};
+
+export type PlayerInput = {
+  name: Scalars['String']['input'];
+  verified: Scalars['Boolean']['input'];
 };
 
 export type Query = {
@@ -175,6 +187,7 @@ export type ResolversTypes = {
   Gender: Gender;
   Mutation: ResolverTypeWrapper<{}>;
   Player: ResolverTypeWrapper<Player>;
+  PlayerInput: PlayerInput;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Team: ResolverTypeWrapper<Team>;
@@ -186,6 +199,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   Mutation: {};
   Player: Player;
+  PlayerInput: PlayerInput;
   Query: {};
   String: Scalars['String']['output'];
   Team: Team;
@@ -199,6 +213,7 @@ export type AvailableColorResolvers<ContextType = any, ParentType extends Resolv
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captainPhone' | 'captianEmail' | 'captianName' | 'gender' | 'kcylUnit' | 'managerEmail' | 'managerPhone' | 'playerNames' | 'teamColor' | 'teamName'>>;
+  updateTeamPlayers?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationUpdateTeamPlayersArgs, 'players' | 'teamName'>>;
 };
 
 export type PlayerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']> = {

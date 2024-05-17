@@ -1,17 +1,22 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { aws_s3 as s3 } from 'aws-cdk-lib';
-import { CachePolicy, Distribution, OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
+import { CachePolicy, Distribution, OriginAccessIdentity, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { BucketAccessControl } from 'aws-cdk-lib/aws-s3';
 import { exec } from 'child_process';
 import { LkcylStack } from './lkcyl-stack';
 import path from "path";
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 interface LkcylStackProps extends cdk.StackProps {
-    path: string
-    backendStack: LkcylStack
+    path: string;
+    backendStack: LkcylStack;
+    domainName: string;
+    hostedZoneId: string;
 }
   
 
@@ -19,6 +24,7 @@ export class FrontEndStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: LkcylStackProps) {
         super(scope, id, props);
 
+        const certificateArn = 'arn:aws:acm:us-east-1:220329959474:certificate/b7cd9f41-711b-40c0-96ca-cce8c804aeb0' //update this
         const bucketName = `${id}LkcylWebsiteBucket`
         const websiteBucket = new s3.Bucket(this, bucketName, {
             bucketName: bucketName.toLowerCase(),
@@ -43,13 +49,31 @@ export class FrontEndStack extends cdk.Stack {
         const originAccessIdentity = new OriginAccessIdentity(this, `${id}OriginAccessIdentity`);
         websiteBucket.grantRead(originAccessIdentity);
 
+
+        const certificate = Certificate.fromCertificateArn(this, `${id}SiteCertificate`, certificateArn);
+
         const websiteDistribution = new Distribution(this, `${id}WebsiteDistribution`, {
         defaultRootObject: 'index.html',
         defaultBehavior: {
             cachePolicy: CachePolicy.CACHING_DISABLED,
-            origin: new S3Origin(websiteBucket, {originAccessIdentity})
-        }
+            origin: new S3Origin(websiteBucket, {originAccessIdentity}),
+            viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
+        domainNames: [props.domainName],
+        certificate,
         });
+
+        const hostedZone = HostedZone.fromHostedZoneAttributes(this, `${id}HostedZone`, {
+            hostedZoneId: props.hostedZoneId,
+            zoneName: props.domainName,
+        });
+
+        new ARecord(this, `${id}SiteAliasRecord`, {
+            recordName: props.domainName,
+            target: RecordTarget.fromAlias(new CloudFrontTarget(websiteDistribution)),
+            zone: hostedZone,
+        });
+
 
 
         // // Optionally output the S3 bucket URL

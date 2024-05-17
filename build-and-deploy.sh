@@ -42,6 +42,18 @@ if [ "$answer" = "y" ]; then
   run_command "npm run build" "$(pwd)/frontend"
 fi
 
+# # Ask user if they want to run the certificate stack
+answer=$(ask_question "Do you want to run ${STAGE}CertificateStack? (y/n) ")
+if [ "$answer" = "y" ]; then
+  run_command "npx cdk deploy ${STAGE}CertificateStack" "$(pwd)"
+fi
+
+# # Ask user if they want to run build again
+answer=$(ask_question "Do you want to npm run build again, this is your oppertunity to update the certificatsArn in the front end stack? (y/n) ")
+if [ "$answer" = "y" ]; then
+  run_command "npm run build" "$(pwd)"
+fi
+
 # # Ask user if they want to run the frontend stack
 answer=$(ask_question "Do you want to run ${STAGE}FrontEndStack? (y/n) ")
 if [ "$answer" = "y" ]; then

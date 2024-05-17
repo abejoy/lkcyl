@@ -1,0 +1,14 @@
+{
+  "hosted-zone:account=220329959474:domainName=jesvinjoys.com:region=eu-west-2": {
+    "Id": "/hostedzone/Z07519022GY9VAH5D0356",
+    "Name": "jesvinjoys.com."
+  },
+  "hosted-zone:account=220329959474:domainName=jesvinjoys.com:region=us-east-1": {
+    "Id": "/hostedzone/Z07519022GY9VAH5D0356",
+    "Name": "jesvinjoys.com."
+  },
+  "hosted-zone:account=220329959474:domainName=lkcyl.com:region=us-east-1": {
+    "Id": "/hostedzone/Z040422528VY43HICI4GD",
+    "Name": "lkcyl.com."
+  }
+}

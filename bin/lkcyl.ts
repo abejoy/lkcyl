@@ -4,6 +4,15 @@ import * as cdk from 'aws-cdk-lib';
 import { LkcylStack } from '../lib/lkcyl-stack';
 import * as path from 'path';
 import { FrontEndStack } from '../lib/front-end-stack';
+import { CertificateStack } from '../lib/certificate-stack';
+
+export type DomainNameType = {
+  semiUrl: string;
+  fullUrl: string;
+}
+const semiUrl = 'lkcyl.com';
+const fullUrl = `www.${semiUrl}`;
+
 
 const replaceNonAlphaNumHyphens = (input?: string, replacement = "-") =>
   input?.replace(/[^A-z0-9-]|_/gu, replacement) || '';
@@ -22,12 +31,18 @@ const backendStack = new LkcylStack(app, `${stackName}LkcylStack`, {
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+});
+
+const certificateStack = new CertificateStack(app, `${stackName}CertificateStack`, {
+  // env: {region: 'us-east-1', account:'220329959474'},
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: 'us-east-1' },
+  domainName: {semiUrl , fullUrl}
 });
 
 new FrontEndStack(app, `${stackName}FrontEndStack`, {
   path: path.join(__dirname, '..', 'frontend', 'build'),
+  domainName: fullUrl,
+  hostedZoneId: 'Z02882661ENYGXQX341BE',
   backendStack
 })

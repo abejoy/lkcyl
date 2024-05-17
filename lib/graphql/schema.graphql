@@ -9,11 +9,16 @@ input PlayerInput {
 }
 
 enum Color {
-    Red,
-    Green,
-    Blue,
+    Black,
     White,
-    Black
+    Yellow,
+    Blue,
+    Red,
+    Purple,
+    Green,
+    Pink,
+    Orange,
+    Brown
 }
 
 enum Gender {

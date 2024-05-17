@@ -13,14 +13,6 @@ import {
 import { Team, AvailableColor, Color, Player, PlayerInput } from "../helpers/types/graphql-types";
 import { EmailTemplate, EmailToSend } from "../emailService";
 
-export enum AllColours {
-  Red = 'Red',
-  Green = 'Green',
-  Bkue = 'Bkue',
-  White = 'White',
-  Black = 'Black'
-}
-
 export type HttpResponse = {
   statusCode: number,
   headers: object,
@@ -208,7 +200,7 @@ const addTeam = async (args: TeamMutationInput) => {
 
     const emailsToSendManager: EmailToSend = {emailAddressToSend: [teamToAdd.managerEmail], emailTemplate: EmailTemplate.Manager, emailArgs: teamToAdd};
 
-    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'jesvinjoril98@yahoo.co.in'], emailTemplate: EmailTemplate.Admin, emailArgs: teamToAdd};
+    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'ivathomas2013@yahoo.com'], emailTemplate: EmailTemplate.Admin, emailArgs: teamToAdd};
 
     const emailsToSend: EmailToSend[] = [emailsToSendCaptian, emailsToSendManager, emailToAdmin]
     sendEmail(emailsToSend);

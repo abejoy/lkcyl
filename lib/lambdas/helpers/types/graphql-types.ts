@@ -25,9 +25,14 @@ export type AvailableColor = {
 export enum Color {
   Black = 'Black',
   Blue = 'Blue',
+  Brown = 'Brown',
   Green = 'Green',
+  Orange = 'Orange',
+  Pink = 'Pink',
+  Purple = 'Purple',
   Red = 'Red',
-  White = 'White'
+  White = 'White',
+  Yellow = 'Yellow'
 }
 
 export enum Gender {

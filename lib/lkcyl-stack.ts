@@ -159,6 +159,9 @@ export class LkcylStack extends cdk.Stack {
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: AuthorizationType.API_KEY,
+          apiKeyConfig: {
+            expires: cdk.Expiration.after(cdk.Duration.days(300))
+          }
         },
       },
       xrayEnabled: true

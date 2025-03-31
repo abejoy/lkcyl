@@ -200,7 +200,7 @@ const addTeam = async (args: TeamMutationInput) => {
 
     const emailsToSendManager: EmailToSend = {emailAddressToSend: [teamToAdd.managerEmail], emailTemplate: EmailTemplate.Manager, emailArgs: teamToAdd};
 
-    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'ivathomas2013@yahoo.com'], emailTemplate: EmailTemplate.Admin, emailArgs: teamToAdd};
+    const emailToAdmin: EmailToSend = {emailAddressToSend: ['kestertomy17@gmail.com', 'ivathomas2013@yahoo.com', 'abrahamjoys98@outlook.com'], emailTemplate: EmailTemplate.Admin, emailArgs: teamToAdd};
 
     const emailsToSend: EmailToSend[] = [emailsToSendCaptian, emailsToSendManager, emailToAdmin]
     sendEmail(emailsToSend);

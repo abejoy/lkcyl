@@ -13,7 +13,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy-frontend": "./upload-to-s3.sh"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",

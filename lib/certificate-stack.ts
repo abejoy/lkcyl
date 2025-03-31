@@ -6,6 +6,7 @@ import { HostedZone } from 'aws-cdk-lib/aws-route53';
 
 interface CertificateStackProps extends cdk.StackProps {
   domainName: {semiUrl: string, fullUrl: string};
+  hostedZoneId: string
 }
 
 export class CertificateStack extends cdk.Stack {
@@ -22,8 +23,8 @@ export class CertificateStack extends cdk.Stack {
     //   domainName: props.domainName.semiUrl,
     // });
 
-    const hostedZoneId = 'Z02882661ENYGXQX341BE';
-    const hostedZone = HostedZone.fromHostedZoneId(this, `${id}HostedZone`, hostedZoneId)
+    
+    const hostedZone = HostedZone.fromHostedZoneId(this, `${id}HostedZone`, props.hostedZoneId)
 
     const certificate = new Certificate(this, `${id}SiteCertificate`, {
       domainName: props.domainName.fullUrl,

@@ -49,6 +49,5 @@ new FrontEndStack(app, `${stackName}FrontEndStack`, {
   path: path.join(__dirname, "..", "frontend", "build"),
   domainName: fullUrl,
   hostedZoneId,
-  backendStack,
   certificateArn,
 });

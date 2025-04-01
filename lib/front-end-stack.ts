@@ -23,7 +23,6 @@ import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
 interface LkcylStackProps extends cdk.StackProps {
   path: string;
-  backendStack: LkcylStack;
   domainName: string;
   hostedZoneId: string;
   certificateArn: string;

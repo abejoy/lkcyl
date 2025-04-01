@@ -1,0 +1,73 @@
+type Player {
+    name: String!
+    verified: Boolean!
+}
+
+input PlayerInput {
+  name: String!
+  verified: Boolean!
+}
+
+enum Color {
+    Black,
+    White,
+    Yellow,
+    Blue,
+    Red,
+    Purple,
+    Green,
+    Pink,
+    Orange,
+    Brown
+}
+
+enum Gender {
+    Male,
+    Female
+}
+
+type AvailableColor {
+    colorName: Color!
+    available: Boolean!
+}
+
+type Team {
+  teamName: String!
+  managerName: String!
+  managerEmail: String!
+  captianName: String!
+  captianEmail: String!
+  teamColor: Color!
+  kcylUnit: String!
+  gender: Gender!
+  additionalMessage: String
+  captainPhone:String!
+  managerPhone:String!
+  players: [Player]
+}
+
+type Query {
+  getTeam(teamName: String!): Team
+  getAvailableColors: [AvailableColor]!
+  getAllTeam: [Team]!
+  getTableData: [[String]]!
+  sendEmailsToCaptianManagers(subject: String!, body:String!): String!
+}
+
+type Mutation {
+  addTeam(
+    teamName: String!, 
+    managerName: String,
+    managerEmail: String!,
+    captianName: String!,
+    captianEmail: String!,
+    teamColor: Color!,
+    gender: Gender!,
+    kcylUnit: String!
+    additionalMessage: String
+    captainPhone:String!
+    managerPhone:String!
+    playerNames: [String]!
+  ): Team
+  updateTeamPlayers(teamName: String!, players: [PlayerInput]!): Team
+}

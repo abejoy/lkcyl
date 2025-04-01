@@ -1,11 +1,16 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { aws_apigateway as apigateway } from 'aws-cdk-lib';
 import { aws_iam as iam } from 'aws-cdk-lib';
-import { HttpMethod } from 'aws-cdk-lib/aws-events';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import path, { join } from "path";
+import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { join } from "path";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { AuthorizationType, GraphqlApi, SchemaFile } from 'aws-cdk-lib/aws-appsync';
+import { aws_s3 as s3 } from 'aws-cdk-lib';
+import { BlockPublicAccess, BucketPolicy } from 'aws-cdk-lib/aws-s3';
+
+
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class LkcylStack extends cdk.Stack {
@@ -13,9 +18,30 @@ export class LkcylStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const bucketName = `${id}EmailBucket`
+    const emailBucket = new s3.Bucket(this, bucketName, {
+        bucketName: bucketName.toLowerCase(),
+        publicReadAccess: false,
+        blockPublicAccess: new BlockPublicAccess({  // Correctly disables all block public access settings
+          blockPublicAcls: false,
+          ignorePublicAcls: false,
+          blockPublicPolicy: false,
+          restrictPublicBuckets: false
+        }),
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
 
-    const requestTemplates = { "application/json": '{ "statusCode": "200" }' };
+    // Attach a bucket policy that allows public read access
+    const bucketPolicy = new BucketPolicy(this, 'BucketPolicy', {
+      bucket: emailBucket,  // Associate policy with the created bucket
+    });
+
+    bucketPolicy.document.addStatements(new cdk.aws_iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [emailBucket.arnForObjects('*')],  // Apply the policy to all objects
+      principals: [new cdk.aws_iam.AnyPrincipal()],  // Allow all users
+    }));
+
 
     const allowLogs = [
       new iam.PolicyStatement({
@@ -27,11 +53,61 @@ export class LkcylStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         actions: ["logs:*"],
         resources: [
-          `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:/aws/lambda/${id}imageToS3Lambda:*`,
+          `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:/aws/lambda/${id}SendEmailLambda:*`,
         ],
       }),
     ];
-    const roleForLambda = new iam.Role(this, `${id}OpenAILambdaRole`, {
+
+
+
+
+
+    //define team table
+
+    const tableName = `${id}TeamTable`;
+    const teamTable = new Table(this, tableName, {
+      partitionKey: {name: 'teamName', type: AttributeType.STRING},
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      tableName,
+    });
+
+
+    //email service
+    //role
+    const roleForEmailLambda = new iam.Role(this, `${id}EmailLambdaRole`, {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+    });
+    const roleForEmailLambdaPolicy = new iam.ManagedPolicy(this, `${id}EmailLambdaPolicy`, {
+      statements: [
+        ...allowLogs,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+          resources: ['*']
+        }),
+        // new iam.PolicyStatement({
+        //   effect: iam.Effect.ALLOW,
+        //   actions: ["s3:Get", "s3:GetObject", "s3:PutObject"],
+        //   resources: ["*"],
+        // }),
+      ],
+      roles: [roleForEmailLambda],
+    });
+    emailBucket.grantRead(roleForEmailLambda);
+    //lambda
+    const emailLambdaFunction = new NodejsFunction(this, `${id}SendEmailLambda`, {
+      runtime: Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      entry: join(__dirname, 'lambdas/emailService/index.ts'),
+      role: roleForEmailLambda,
+      environment: {
+        EMAIL_BUCKET_NAME: emailBucket.bucketName
+      }
+    });
+
+    //team service
+    //role
+    const roleForTeamLambda = new iam.Role(this, `${id}TeamLambdaRole`, {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
     });
     const roleForLambdaPolicy = new iam.ManagedPolicy(
@@ -40,92 +116,99 @@ export class LkcylStack extends cdk.Stack {
       {
         statements: [
           ...allowLogs,
+          // new iam.PolicyStatement({
+          //   effect: iam.Effect.ALLOW,
+          //   actions: ["s3:Get", "s3:GetObject", "s3:PutObject"],
+          //   resources: ["*"],
+          // }),
           new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
-            actions: ["s3:Get", "s3:GetObject", "s3:PutObject"],
+            actions: ['dynamodb:GetItem', 'dynamodb:Scan', 'dynamodb:Query', 'dynamodb:UpdateItem', 'dynamodb:PutItem', 'dynamodb:DeleteItem'],
             resources: ["*"],
           }),
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ['lambda:InvokeFunction'],
+            resources: [emailLambdaFunction.functionArn],
+          }),
         ],
-        roles: [roleForLambda],
+        roles: [roleForTeamLambda],
       }
     );
-
-
-
-    // Define the API Gateway
-
-    // Define the Lambda resource
-
-
-
-    const getTeamDataFunction = new NodejsFunction(this, `${id}GetTeamDataLambda`, {
+    //lambda
+    const teamLambdaFunction = new NodejsFunction(this, `${id}GetTeamDataLambda`, {
       runtime: Runtime.NODEJS_18_X,
       handler: 'index.handler',
-      entry: join(__dirname, 'lambdas/getAllTeams/index.ts'),
-      role: roleForLambda
+      entry: join(__dirname, 'lambdas/teamService/index.ts'),
+      environment: {
+        TABLE_NAME: teamTable.tableName,
+        EMAIL_LAMBDA_NAME: emailLambdaFunction.functionName,
+      },
+      role: roleForTeamLambda
+    });
+    teamTable.grantFullAccess(teamLambdaFunction);
+
+    emailLambdaFunction.grantInvoke(teamLambdaFunction);
+
+
+    //app sync api
+
+    const api = new GraphqlApi(this, `${id}Api`, {
+      name: 'team-api',
+      schema: SchemaFile.fromAsset(join(__dirname, 'graphql/schema.graphql')),
+      authorizationConfig: {
+        defaultAuthorization: {
+          authorizationType: AuthorizationType.API_KEY,
+          apiKeyConfig: {
+            expires: cdk.Expiration.after(cdk.Duration.days(300))
+          }
+        },
+      },
+      xrayEnabled: true
     });
 
-    // const getTeamDataFunction = new lambda.Function(this, `${id}GetTeamDataLambda`, {
-    //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   handler: 'index.handler',
-    //   code: lambda.Code.fromAsset('lib/lambdas/getAllTeams'),
-    //   role: roleForLambda,
-    // });
 
+    const lambdaDs = api.addLambdaDataSource(`${id}LambdaDataSource`, teamLambdaFunction);
 
-    const storeTeamDataFunction = new NodejsFunction(this, `${id}StoreTeamDataLambda`, {
-      runtime: Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      entry: join(__dirname, 'lambdas/storeTeam/index.ts'),
-      role: roleForLambda
+    //Define resolvers
+    lambdaDs.createResolver(`${id}GetAllTeam`, {
+      typeName: 'Query',
+      fieldName: 'getAllTeam'
     });
 
-    // const storeTeamDataFunction = new lambda.Function(this, `${id}StoreTeamDataLambda`, {
-    //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   handler: 'index.handler',
-    //   code: lambda.Code.fromAsset('lib/lambdas/storeTeam'),
-    //   role: roleForLambda,
-    // });
-
-    const getAvailableColoursFunction = new NodejsFunction(this, `${id}GetAvailableColoursLambda`, {
-      runtime: Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      entry: join(__dirname, 'lambdas/getAvailableColours/index.ts'),
-      role: roleForLambda
+    lambdaDs.createResolver(`${id}GetTeam`, {
+      typeName: 'Query',
+      fieldName: 'getTeam'
     });
 
-    // const getAvailableColoursFunction = new lambda.Function(this, `${id}GetAvailableColoursLambda`, {
-    //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   handler: 'index.handler',
-    //   code: lambda.Code.fromAsset('lib/lambdas/getAvailableColours'),
-    //   role: roleForLambda,
-    // });
-
-
-
-    const api = new apigateway.RestApi(this, `${id}TeamEndpointApi`, {
-      restApiName: `${id}Api`,
-      description: 'backend for lkcyl app',
+    lambdaDs.createResolver(`${id}AddTeam`, {
+      typeName: 'Mutation',
+      fieldName: 'addTeam'
     });
 
-    api.root.addCorsPreflight({
-      allowOrigins: ['*'],
-      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Content-Type', 'Authorization', 'X-Amz-Date', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent'],
-      allowCredentials: true,
-    })
+    lambdaDs.createResolver(`${id}UpdateTeamPlayers`, {
+      typeName: 'Mutation',
+      fieldName: 'updateTeamPlayers'
+    });
 
+    lambdaDs.createResolver(`${id}GetAvailableColors`, {
+      typeName: 'Query',
+      fieldName: 'getAvailableColors'
+    });
 
-    const teamResource = api.root.addResource('teams');
-    teamResource.addMethod(HttpMethod.GET, new apigateway.LambdaIntegration(getTeamDataFunction, {requestTemplates}));
-    teamResource.addMethod(HttpMethod.PUT,  new apigateway.LambdaIntegration(storeTeamDataFunction, {requestTemplates}));
-
-    const colourResource = api.root.addResource('colours');
-    colourResource.addMethod(HttpMethod.GET, new apigateway.LambdaIntegration(getAvailableColoursFunction));
+    lambdaDs.createResolver(`${id}GetTableData`, {
+      typeName: 'Query',
+      fieldName: 'getTableData'
+    });
 
     // Output the API Gateway endpoint URL
     new cdk.CfnOutput(this, `${id}ApiEndpoint`, {
-      value: api.url,
+      value: api.graphqlUrl,
+      description: 'URL for the API Gateway endpoint'
+    });
+
+    new cdk.CfnOutput(this, `${id}ApiKey`, {
+      value: api.apiKey || 'no key',
       description: 'URL for the API Gateway endpoint'
     });
 

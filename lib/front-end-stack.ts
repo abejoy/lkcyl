@@ -65,25 +65,25 @@ export class FrontEndStack extends cdk.Stack {
     );
 
     // Execute build command
-    try {
-      exec(`npm run build`, {
-        cwd: path.join(__dirname, "..", "frontend"),
-      });
-    } catch (error) {
-      console.error("Failed to build the frontend:", error);
-      process.exit(1); // Stop deployment if the build fails
-    }
+    // try {
+    //   exec(`npm run build`, {
+    //     cwd: path.join(__dirname, "..", "frontend"),
+    //   });
+    // } catch (error) {
+    //   console.error("Failed to build the frontend:", error);
+    //   process.exit(1); // Stop deployment if the build fails
+    // }
 
-    const bucketDeployment = new BucketDeployment(
-      this,
-      `${id}BucketDeployment`,
-      {
-        destinationBucket: websiteBucket,
-        sources: [
-          Source.asset(path.join(__dirname, "..", "frontend", "build")),
-        ],
-      }
-    );
+    // const bucketDeployment = new BucketDeployment(
+    //   this,
+    //   `${id}BucketDeployment`,
+    //   {
+    //     destinationBucket: websiteBucket,
+    //     sources: [
+    //       Source.asset(path.join(__dirname, "..", "frontend", "build")),
+    //     ],
+    //   }
+    // );
 
     const originAccessIdentity = new OriginAccessIdentity(
       this,

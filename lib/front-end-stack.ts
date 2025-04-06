@@ -9,16 +9,9 @@ import {
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import { S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
-import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { BucketAccessControl } from "aws-cdk-lib/aws-s3";
-import { exec } from "child_process";
-import { LkcylStack } from "./lkcyl-stack";
-import path from "path";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
-import {
-  Certificate,
-  CertificateValidation,
-} from "aws-cdk-lib/aws-certificatemanager";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
 interface LkcylStackProps extends cdk.StackProps {
@@ -26,12 +19,14 @@ interface LkcylStackProps extends cdk.StackProps {
   domainName: string;
   hostedZoneId: string;
   certificateArn: string;
+  emailBucket: cdk.aws_s3.Bucket;
 }
 
 export class FrontEndStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: LkcylStackProps) {
     super(scope, id, props);
 
+    const emailBucket = props.emailBucket;
     const certificateArn = props.certificateArn;
     const bucketName = `${id}LkcylWebsiteBucket`;
     const iamUser = new iam.User(this, `${id}S3AccessUser`, {
@@ -59,6 +54,8 @@ export class FrontEndStack extends cdk.Stack {
         resources: [
           websiteBucket.bucketArn, // Bucket itself
           websiteBucket.arnForObjects("*"), // Objects in the bucket
+          emailBucket.bucketArn,
+          emailBucket.arnForObjects("*"),
         ],
       })
     );

@@ -50,4 +50,5 @@ new FrontEndStack(app, `${stackName}FrontEndStack`, {
   domainName: fullUrl,
   hostedZoneId,
   certificateArn,
+  emailBucket: backendStack.emailBucket,
 });

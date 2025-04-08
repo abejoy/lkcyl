@@ -103,6 +103,14 @@ export class FrontEndStack extends cdk.Stack {
           origin: new S3Origin(websiteBucket, { originAccessIdentity }),
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
+        errorResponses: [
+          {
+            httpStatus: 404, // Handle 404 errors
+            responseHttpStatus: 200, // Return a 200 status
+            responsePagePath: "/index.html", // Serve index.html for SPA routes
+            ttl: cdk.Duration.seconds(0), // Cache duration for error responses
+          },
+        ],
         domainNames: [props.domainName],
         certificate,
       }

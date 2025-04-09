@@ -61,7 +61,6 @@ export class FrontEndStack extends cdk.Stack {
     );
 
     emailBucket.addCorsRule({
-      allowedOrigins: ["https://www.lkcyl.com", "http://localhost:3000"], // Allow requests from this origin
       allowedMethods: [
         s3.HttpMethods.GET, // Allow GET requests
         s3.HttpMethods.PUT, // Allow PUT requests if needed
@@ -70,7 +69,8 @@ export class FrontEndStack extends cdk.Stack {
       ],
       allowedHeaders: ["*"], // Allow all headers
       exposedHeaders: ["ETag"], // Expose specific headers if needed
-      maxAge: 3000, // Cache the preflight response for 3000 seconds
+      maxAge: 3000,
+      allowedOrigins: [],
     });
 
     // Execute build command

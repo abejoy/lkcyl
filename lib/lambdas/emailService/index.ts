@@ -22,6 +22,7 @@ import mime from "mime-types";
 export enum EmailTemplate {
   Captain = "Captain",
   Manager = "Manager",
+  Director = "Director",
   Admin = "Admin",
   Custom = "Custom",
 }
@@ -244,6 +245,29 @@ export const handler = async (event: any) => {
             ToAddresses,
             emailToSend.emailSubject,
             emailToSend.emailBody
+          );
+          break;
+        case EmailTemplate.Director:
+          const directorReplacementParams: ReplacementArgs = {
+            name: emailToSend.emailArgs?.directorName || "",
+            teamName,
+            unit,
+            gender,
+            allPlayers,
+            role: emailToSend.emailTemplate,
+            color,
+            teamDetails,
+          };
+          const directorHtmlBody: string =
+            (await getHtmlBody(
+              "emailbody/directorEmail.txt",
+              directorReplacementParams
+            )) || "";
+          emailSentData = await sendEmailWithAttachment(
+            emailToSend.emailAddressToSend,
+            sub,
+            directorHtmlBody,
+            ["attachments/poster.jpeg"]
           );
           break;
         case EmailTemplate.Captain:

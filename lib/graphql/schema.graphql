@@ -37,6 +37,9 @@ type Team {
   managerEmail: String!
   captainName: String!
   captainEmail: String!
+  directorName: String!
+  directorEmail: String!
+  directorPhone: String!
   teamColor: Color!
   kcylUnit: String!
   gender: Gender!
@@ -61,6 +64,9 @@ type Mutation {
     managerEmail: String!,
     captainName: String!,
     captainEmail: String!,
+    directorName: String!
+    directorEmail: String!
+    directorPhone: String!
     teamColor: Color!,
     gender: Gender!,
     kcylUnit: String!

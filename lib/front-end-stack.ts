@@ -70,7 +70,7 @@ export class FrontEndStack extends cdk.Stack {
       allowedHeaders: ["*"], // Allow all headers
       exposedHeaders: ["ETag"], // Expose specific headers if needed
       maxAge: 3000,
-      allowedOrigins: [],
+      allowedOrigins: ["https://www.lkcyl.com"],
     });
 
     // Execute build command

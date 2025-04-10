@@ -52,6 +52,9 @@ export type MutationAddTeamArgs = {
   captainEmail: Scalars['String']['input'];
   captainName: Scalars['String']['input'];
   captainPhone: Scalars['String']['input'];
+  directorEmail: Scalars['String']['input'];
+  directorName: Scalars['String']['input'];
+  directorPhone: Scalars['String']['input'];
   gender: Gender;
   kcylUnit: Scalars['String']['input'];
   managerEmail: Scalars['String']['input'];
@@ -105,6 +108,9 @@ export type Team = {
   captainEmail: Scalars['String']['output'];
   captainName: Scalars['String']['output'];
   captainPhone: Scalars['String']['output'];
+  directorEmail: Scalars['String']['output'];
+  directorName: Scalars['String']['output'];
+  directorPhone: Scalars['String']['output'];
   gender: Gender;
   kcylUnit: Scalars['String']['output'];
   managerEmail: Scalars['String']['output'];
@@ -217,7 +223,7 @@ export type AvailableColorResolvers<ContextType = any, ParentType extends Resolv
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captainEmail' | 'captainName' | 'captainPhone' | 'gender' | 'kcylUnit' | 'managerEmail' | 'managerPhone' | 'playerNames' | 'teamColor' | 'teamName'>>;
+  addTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationAddTeamArgs, 'captainEmail' | 'captainName' | 'captainPhone' | 'directorEmail' | 'directorName' | 'directorPhone' | 'gender' | 'kcylUnit' | 'managerEmail' | 'managerPhone' | 'playerNames' | 'teamColor' | 'teamName'>>;
   updateTeamPlayers?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<MutationUpdateTeamPlayersArgs, 'players' | 'teamName'>>;
 };
 
@@ -240,6 +246,9 @@ export type TeamResolvers<ContextType = any, ParentType extends ResolversParentT
   captainEmail?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   captainName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   captainPhone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  directorEmail?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  directorName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  directorPhone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   gender?: Resolver<ResolversTypes['Gender'], ParentType, ContextType>;
   kcylUnit?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   managerEmail?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

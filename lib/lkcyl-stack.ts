@@ -34,8 +34,6 @@ export class LkcylStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    this.emailBucket = emailBucket;
-
     // Attach a bucket policy that allows public read access
     const bucketPolicy = new BucketPolicy(this, "BucketPolicy", {
       bucket: emailBucket, // Associate policy with the created bucket
@@ -48,6 +46,8 @@ export class LkcylStack extends cdk.Stack {
         principals: [new cdk.aws_iam.AnyPrincipal()], // Allow all users
       })
     );
+
+    this.emailBucket = emailBucket;
 
     const allowLogs = [
       new iam.PolicyStatement({

@@ -185,8 +185,8 @@ const addTeam = async (args: TeamMutationInput) => {
     teamColor,
     managerEmail,
     managerName,
-    captianName,
-    captianEmail,
+    captainName,
+    captainEmail,
     kcylUnit,
     gender,
     additionalMessage,
@@ -205,8 +205,8 @@ const addTeam = async (args: TeamMutationInput) => {
     teamName,
     managerName,
     managerEmail,
-    captianName,
-    captianEmail,
+    captainName,
+    captainEmail,
     teamColor,
     players,
     kcylUnit,
@@ -220,8 +220,8 @@ const addTeam = async (args: TeamMutationInput) => {
     await updateTeam(teamToAdd);
 
     const emailsToSendCaptian: EmailToSend = {
-      emailAddressToSend: [teamToAdd.captianEmail],
-      emailTemplate: EmailTemplate.Captian,
+      emailAddressToSend: [teamToAdd.captainEmail],
+      emailTemplate: EmailTemplate.Captain,
       emailArgs: teamToAdd,
     };
 

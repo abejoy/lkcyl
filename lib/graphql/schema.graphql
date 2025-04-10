@@ -35,8 +35,8 @@ type Team {
   teamName: String!
   managerName: String!
   managerEmail: String!
-  captianName: String!
-  captianEmail: String!
+  captainName: String!
+  captainEmail: String!
   teamColor: Color!
   kcylUnit: String!
   gender: Gender!
@@ -51,7 +51,7 @@ type Query {
   getAvailableColors: [AvailableColor]!
   getAllTeam: [Team]!
   getTableData: [[String]]!
-  sendEmailsToCaptianManagers(subject: String!, body:String!): String!
+  sendEmailsToCaptainManagers(subject: String!, body:String!): String!
 }
 
 type Mutation {
@@ -59,8 +59,8 @@ type Mutation {
     teamName: String!, 
     managerName: String,
     managerEmail: String!,
-    captianName: String!,
-    captianEmail: String!,
+    captainName: String!,
+    captainEmail: String!,
     teamColor: Color!,
     gender: Gender!,
     kcylUnit: String!

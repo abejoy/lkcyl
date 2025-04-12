@@ -111,6 +111,7 @@ export class LkcylStack extends cdk.Stack {
         environment: {
           EMAIL_BUCKET_NAME: emailBucket.bucketName,
         },
+        timeout: cdk.Duration.seconds(20),
       }
     );
 

@@ -215,11 +215,13 @@ const getTeamDetailsText = (team: Team | string): string => {
   return `<br/>Team Name: ${team.teamName}<br/><br/>Manager Details<br/>Name: ${team.managerName}<br/>Number:${team.managerPhone}<br/>Email:${team.managerEmail}<br/><br/>Captain Details:<br/>Name:${team.captainName}<br/>Number:${team.captainPhone}<br/>Email:${team.captainEmail}<br/><br/>Team Colour:${team.teamColor}<br/><br/>KcylUnit:${team.kcylUnit}<br/><br/>Aditional Message:${team.additionalMessage}<br/><br/>Players:<br/>${players}`;
 };
 
-const listFilesInAttachmentsFolder = async (): Promise<string[]> => {
+const listFilesInAttachmentsFolder = async (
+  subfolder: string
+): Promise<string[]> => {
   try {
     const command = new ListObjectsV2Command({
       Bucket: emailBucketName,
-      Prefix: "attachments/", // Specify the folder prefix
+      Prefix: `attachments/${subfolder}`, // Specify the folder prefix
     });
 
     const response = await s3Client.send(command);
@@ -227,7 +229,8 @@ const listFilesInAttachmentsFolder = async (): Promise<string[]> => {
     // Extract file names from the response
     const fileNames =
       response.Contents?.map((item) => item.Key?.split("/").pop() || "") || [];
-    return fileNames;
+
+    return fileNames.map((fileName) => `attachments/${subfolder}/${fileName}`);
   } catch (error) {
     console.error("Error listing files in attachments folder:", error);
     throw error;
@@ -243,9 +246,9 @@ export const handler = async (event: any) => {
     }
 
     const adminEmailsToSend: string[] = await fetchAdminEmails();
-    const attachmentsFileNames: string[] = (
-      await listFilesInAttachmentsFolder()
-    ).map((fileName) => `attachments/${fileName}`);
+    const attachmentsFileNames: string[] = await listFilesInAttachmentsFolder(
+      "everyone"
+    );
 
     let emailSentData: any;
     for (const emailToSend of emailsToSend) {
@@ -281,6 +284,8 @@ export const handler = async (event: any) => {
             color,
             teamDetails,
           };
+          const directorAttachmentsFileNames: string[] =
+            await listFilesInAttachmentsFolder("director");
           const directorHtmlBody: string =
             (await getHtmlBody(
               "emailbody/directorEmail.txt",
@@ -290,7 +295,7 @@ export const handler = async (event: any) => {
             emailToSend.emailAddressToSend,
             sub,
             directorHtmlBody,
-            [...attachmentsFileNames]
+            [...attachmentsFileNames, ...directorAttachmentsFileNames]
           );
           break;
         case EmailTemplate.Captain:

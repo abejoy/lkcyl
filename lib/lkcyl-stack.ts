@@ -111,7 +111,26 @@ export class LkcylStack extends cdk.Stack {
         environment: {
           EMAIL_BUCKET_NAME: emailBucket.bucketName,
         },
-        timeout: cdk.Duration.seconds(20),
+        timeout: cdk.Duration.seconds(30),
+        memorySize: 512,
+        bundling: {
+          externalModules: [], // Ensure no modules are excluded
+          // nodeModules: ["pdfkit"], // Explicitly include pdfkit in the bundle
+          commandHooks: {
+            beforeBundling(inputDir: string, outputDir: string): string[] {
+              return [
+                `cp ${inputDir}/lib/lambdas/emailService/lkcyl-logo.png ${outputDir}`,
+                `cp ${inputDir}/lib/lambdas/emailService/lkca-logo.png ${outputDir}`,
+              ];
+            },
+            afterBundling(): string[] {
+              return [];
+            },
+            beforeInstall(): string[] {
+              return [];
+            },
+          },
+        },
       }
     );
 

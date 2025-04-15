@@ -165,16 +165,18 @@ const sendEmail = async (emailsToSend: EmailToSend[]) => {
     FunctionName: process.env.EMAIL_LAMBDA_NAME,
     Payload: Buffer.from(JSON.stringify({ emailsToSend })),
   };
-  lambdaClinet.send(new InvokeCommand(emailLambdaParams));
+  const response = await lambdaClinet.send(
+    new InvokeCommand(emailLambdaParams)
+  );
   //for logging
   // const response = await lambdaClinet.send(new InvokeCommand(emailLambdaParams));
-  // return new TextDecoder("utf-8").decode(response.Payload);
+  return new TextDecoder("utf-8").decode(response.Payload);
 };
 
-const updateTeam = async (team: Team) => {
+const updateTeam = async (team: Team, emailSent = false) => {
   const dynamoParams: PutCommandInput = {
     TableName,
-    Item: team,
+    Item: { ...team, emailSent },
   };
   return dynamo.send(new PutCommand(dynamoParams));
 };
@@ -254,7 +256,10 @@ const addTeam = async (args: TeamMutationInput) => {
       emailsToSendManager,
       emailToAdmin,
     ];
-    sendEmail(emailsToSend);
+    const result = await sendEmail(emailsToSend);
+    if (JSON.parse(result)?.statusCode === 200) {
+      updateTeam(teamToAdd, true);
+    }
     return teamToAdd;
   } catch (err) {
     throw new Error(`Failed to addteam ${JSON.stringify(err)}`);

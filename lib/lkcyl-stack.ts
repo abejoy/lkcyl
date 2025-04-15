@@ -179,6 +179,7 @@ export class LkcylStack extends cdk.Stack {
         runtime: Runtime.NODEJS_18_X,
         handler: "index.handler",
         entry: join(__dirname, "lambdas/teamService/index.ts"),
+        timeout: cdk.Duration.seconds(30),
         environment: {
           TABLE_NAME: teamTable.tableName,
           EMAIL_LAMBDA_NAME: emailLambdaFunction.functionName,

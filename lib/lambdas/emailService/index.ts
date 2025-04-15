@@ -46,8 +46,8 @@ type ReplacementArgs = {
 const emailBucketName = process.env.EMAIL_BUCKET_NAME;
 const Source: string = "london.region.kcyl@gmail.com";
 
-const sesClient = new SESClient();
-const s3Client = new S3Client();
+const sesClient = new SESClient({ region: process.env.AWS_REGION });
+const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 const sendEmail = async (
   ToAddresses: string[],

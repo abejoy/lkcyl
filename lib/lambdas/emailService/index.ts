@@ -14,6 +14,7 @@ import {
 import { Maybe, Player, Team } from "../helpers/types/graphql-types";
 import mime from "mime-types";
 import { PDFDocument, PDFForm, rgb, StandardFonts } from "pdf-lib";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import * as fs from "fs";
 
 export enum EmailTemplate {
@@ -42,6 +43,7 @@ type ReplacementArgs = {
   role: string;
   color: string;
   teamDetails: string;
+  sponsersImages: string;
 };
 const emailBucketName = process.env.EMAIL_BUCKET_NAME;
 const Source: string = "london.region.kcyl@gmail.com";
@@ -222,10 +224,13 @@ const createPDFBase64 = async (
   };
 
   // HEADER
-  const lkcyllogoBytes = fs.readFileSync("lkcyl-logo.png");
+
+  const lkcyllogoBytes =
+    (await fetchAndEncodeFile("sponsers/lkcyl-logo.png")) || "";
   const lkcyllogoImage = await pdfDoc.embedPng(lkcyllogoBytes);
 
-  const lkcalogoBytes = fs.readFileSync("lkca-logo.png");
+  const lkcalogoBytes =
+    (await fetchAndEncodeFile("sponsers/lkca-logo.png")) || "";
   const lkcaLogoImage = await pdfDoc.embedPng(lkcalogoBytes);
 
   page.drawImage(lkcyllogoImage, {
@@ -343,6 +348,16 @@ const streamToString = (stream: NodeJS.ReadableStream): Promise<string> => {
   });
 };
 
+const getSignedUrlOfObject = async (objectPath: string) => {
+  const command = new GetObjectCommand({
+    Bucket: process.env.EMAIL_BUCKET_NAME, // Replace with your S3 bucket name
+    Key: objectPath, // Path to the image in S3
+  });
+
+  const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+  return signedUrl;
+};
+
 const fetchS3Response = async (
   Key: string
 ): Promise<GetObjectCommandOutput> => {
@@ -354,7 +369,7 @@ const fetchS3Response = async (
 };
 const fetchAndEncodeFile = async (Key: string): Promise<string | undefined> => {
   const response = await fetchS3Response(Key);
-  return streamToBase64(response.Body as NodeJS.ReadableStream); /// am i doing this right
+  return streamToBase64(response.Body as NodeJS.ReadableStream);
 };
 
 const sendEmailWithAttachment = async (
@@ -505,6 +520,29 @@ const listFilesInAttachmentsFolder = async (
   }
 };
 
+const getSponseredImageTag = async (): Promise<string> => {
+  const lkcylImageUrl = await getSignedUrlOfObject("sponsers/lkcyl-logo.png");
+  const ampleImageUrl = await getSignedUrlOfObject("sponsers/ample.jpg");
+  const cjImageUrl = await getSignedUrlOfObject("sponsers/cj.jpg");
+
+  const imageTagTemplate = `
+      <p>Our Sponsors:</p>
+      <a href="https://www.lkcyl.com/" style="padding: 10px" target="_blank">
+        <img src="${lkcylImageUrl}" alt="LKCYL Logo" style="width: 20%"/>
+      </a>
+
+      <a href="https://amplemortgages.co.uk/" style="padding: 10px" target="_blank">
+      <img src="${ampleImageUrl}" alt="LKCYL Logo" style="width: 33%"/>
+      </a>
+
+      <a href="https://www.instagram.com/christie_johns_/" style="padding: 10px" target="_blank">
+      <img src="${cjImageUrl}" alt="LKCYL Logo" style="width: 33%"/>
+      </a>
+    `;
+
+  return imageTagTemplate;
+};
+
 export const handler = async (event: any) => {
   try {
     const toret: any = [];
@@ -517,6 +555,8 @@ export const handler = async (event: any) => {
     const attachmentsFileNames: string[] = await listFilesInAttachmentsFolder(
       "everyone"
     );
+
+    const sponsersImages: string = await getSponseredImageTag();
 
     let emailSentData: any;
     for (const emailToSend of emailsToSend) {
@@ -554,6 +594,7 @@ export const handler = async (event: any) => {
             role: emailToSend.emailTemplate,
             color,
             teamDetails,
+            sponsersImages,
           };
           const directorAttachmentsFileNames: string[] =
             await listFilesInAttachmentsFolder("director");
@@ -588,6 +629,7 @@ export const handler = async (event: any) => {
             role: emailToSend.emailTemplate,
             color,
             teamDetails,
+            sponsersImages,
           };
           const htmlBody: string =
             (await getHtmlBody(
@@ -611,6 +653,7 @@ export const handler = async (event: any) => {
             role: emailToSend.emailTemplate,
             color,
             teamDetails,
+            sponsersImages,
           };
           const managerHtmlBody: string =
             (await getHtmlBody(
@@ -634,6 +677,7 @@ export const handler = async (event: any) => {
             role: emailToSend.emailTemplate,
             color,
             teamDetails,
+            sponsersImages,
           };
           const adminHtmlBody: string =
             (await getHtmlBody(

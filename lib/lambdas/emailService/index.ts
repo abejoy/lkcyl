@@ -9,6 +9,7 @@ import {
   GetObjectCommand,
   GetObjectCommandOutput,
   ListObjectsV2Command,
+  PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { Maybe, Player, Team } from "../helpers/types/graphql-types";
@@ -618,6 +619,19 @@ export const handler = async (event: any) => {
             [...attachmentsFileNames, ...directorAttachmentsFileNames],
             pdfContent
           );
+
+          const pdfBuffer = Buffer.from(pdfContent, "base64");
+          const s3Key = `verificationPDFs/${teamName}.pdf`; // Store in a "pdfs" folder in the bucket
+
+          const uploadCommand = new PutObjectCommand({
+            Bucket: emailBucketName, // Your S3 bucket name
+            Key: s3Key, // File name in the bucket
+            Body: pdfBuffer, // PDF content as a buffer
+            ContentType: "application/pdf", // Set the correct content type
+          });
+
+          await s3Client.send(uploadCommand);
+
           break;
         case EmailTemplate.Captain:
           const capReplacementParams: ReplacementArgs = {

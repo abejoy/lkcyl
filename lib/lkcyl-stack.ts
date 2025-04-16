@@ -89,11 +89,13 @@ export class LkcylStack extends cdk.Stack {
             actions: ["ses:SendEmail", "ses:SendRawEmail"],
             resources: ["*"],
           }),
-          // new iam.PolicyStatement({
-          //   effect: iam.Effect.ALLOW,
-          //   actions: ["s3:Get", "s3:GetObject", "s3:PutObject"],
-          //   resources: ["*"],
-          // }),
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ["s3:PutObject"], // Allow PutObject action
+            resources: [
+              `arn:aws:s3:::${emailBucket.bucketName}/verificationPDFs/*`, // Restrict to the specific folder
+            ],
+          }),
         ],
         roles: [roleForEmailLambda],
       }

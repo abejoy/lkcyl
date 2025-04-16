@@ -527,15 +527,15 @@ const getSponseredImageTag = async (): Promise<string> => {
 
   const imageTagTemplate = `
       <p>Our Sponsors:</p>
-      <a href="https://www.lkcyl.com/" style="padding: 10px" target="_blank">
+      <a href="https://www.lkcyl.com/" style="padding: 1%" target="_blank">
         <img src="${lkcylImageUrl}" alt="LKCYL Logo" style="width: 20%"/>
       </a>
 
-      <a href="https://amplemortgages.co.uk/" style="padding: 10px" target="_blank">
+      <a href="https://amplemortgages.co.uk/" style="padding: 1%" target="_blank">
       <img src="${ampleImageUrl}" alt="LKCYL Logo" style="width: 33%"/>
       </a>
 
-      <a href="https://www.instagram.com/christie_johns_/" style="padding: 10px" target="_blank">
+      <a href="https://www.instagram.com/christie_johns_/" style="padding: 1%" target="_blank">
       <img src="${cjImageUrl}" alt="LKCYL Logo" style="width: 33%"/>
       </a>
     `;

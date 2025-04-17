@@ -63,9 +63,38 @@ export const handler = async (event: any) => {
         event.arguments.teamName,
         event.arguments.players
       );
+    case "isAdminAvailable":
+      return isAdminAvailable(event.arguments.cookieId);
     default:
       throw new Error("Handler not found");
       break;
+  }
+};
+
+const isAdminAvailable = async (cookieId: string): Promise<boolean> => {
+  console.log("Searching for cookieId:", cookieId);
+  console.log("Table Name:", process.env.ADMIN_TABLE_NAME);
+  const scanParams: ScanCommandInput = {
+    TableName: process.env.ADMIN_TABLE_NAME || "",
+    ProjectionExpression: "cookieId",
+    FilterExpression: "cookieId = :cookieId",
+    ExpressionAttributeValues: {
+      ":cookieId": cookieId,
+    },
+  };
+
+  try {
+    const data = await dynamo.send(new ScanCommand(scanParams));
+    console.log(
+      "Filtered Items in Table:",
+      JSON.stringify(data.Items, null, 2)
+    ); // Log filtered items
+    return (data.Items && data.Items.length > 0) || false; // Return true if any items match
+  } catch (err) {
+    console.error(`Failed to fetch Table data from DynamoDB: ${err}`);
+    throw new Error(
+      `Failed to fetch Table data from DynamoDB: ${JSON.stringify(err)}`
+    );
   }
 };
 

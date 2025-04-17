@@ -73,6 +73,13 @@ export class LkcylStack extends cdk.Stack {
       tableName,
     });
 
+    const adminTableName = `${id}AdminCookieTable`;
+    const admminTable = new Table(this, adminTableName, {
+      partitionKey: { name: "cookieId", type: AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      tableName: adminTableName,
+    });
+
     //email service
     //role
     const roleForEmailLambda = new iam.Role(this, `${id}EmailLambdaRole`, {
@@ -166,12 +173,14 @@ export class LkcylStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(30),
         environment: {
           TABLE_NAME: teamTable.tableName,
+          ADMIN_TABLE_NAME: admminTable.tableName,
           EMAIL_LAMBDA_NAME: emailLambdaFunction.functionName,
         },
         role: roleForTeamLambda,
       }
     );
     teamTable.grantFullAccess(teamLambdaFunction);
+    admminTable.grantFullAccess(teamLambdaFunction);
 
     emailLambdaFunction.grantInvoke(teamLambdaFunction);
 
@@ -225,6 +234,11 @@ export class LkcylStack extends cdk.Stack {
     lambdaDs.createResolver(`${id}GetTableData`, {
       typeName: "Query",
       fieldName: "getTableData",
+    });
+
+    lambdaDs.createResolver(`${id}IsAdminAvailable`, {
+      typeName: "Query",
+      fieldName: "isAdminAvailable",
     });
 
     // Output the API Gateway endpoint URL

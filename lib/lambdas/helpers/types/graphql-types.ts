@@ -88,12 +88,18 @@ export type Query = {
   getAvailableColors: Array<Maybe<AvailableColor>>;
   getTableData: Array<Maybe<Array<Maybe<Scalars['String']['output']>>>>;
   getTeam?: Maybe<Team>;
+  isAdminAvailable: Scalars['Boolean']['output'];
   sendEmailsToCaptainManagers: Scalars['String']['output'];
 };
 
 
 export type QueryGetTeamArgs = {
   teamName: Scalars['String']['input'];
+};
+
+
+export type QueryIsAdminAvailableArgs = {
+  cookieId: Scalars['String']['input'];
 };
 
 
@@ -238,6 +244,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getAvailableColors?: Resolver<Array<Maybe<ResolversTypes['AvailableColor']>>, ParentType, ContextType>;
   getTableData?: Resolver<Array<Maybe<Array<Maybe<ResolversTypes['String']>>>>, ParentType, ContextType>;
   getTeam?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryGetTeamArgs, 'teamName'>>;
+  isAdminAvailable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<QueryIsAdminAvailableArgs, 'cookieId'>>;
   sendEmailsToCaptainManagers?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QuerySendEmailsToCaptainManagersArgs, 'body' | 'subject'>>;
 };
 

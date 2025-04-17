@@ -55,6 +55,7 @@ type Query {
   getAllTeam: [Team]!
   getTableData: [[String]]!
   sendEmailsToCaptainManagers(subject: String!, body:String!): String!
+  isAdminAvailable(cookieId: String!): Boolean!
 }
 
 type Mutation {
